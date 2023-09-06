@@ -1,0 +1,7 @@
+[package]
+authors = [""]
+compiler_version = "0.8.0"
+
+[dependencies]
+proof = { tag = "main", git = "https://github.com/aragonzkresearch/noir-trie-proofs" }
+ecrecover = { tag = "v0.8.0", git = "https://github.com/colinnielsen/ecrecover-noir" }

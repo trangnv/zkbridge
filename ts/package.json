@@ -1,0 +1,30 @@
+{
+  "name": "snippets",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "tsc && node ./dist/ts/index.js",
+    "test": "vitest",
+    "generate-inputs": "ts-node --esm --experimental-specifier-resolution=node ./utils/populateInput.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aztec/bb.js": "0.4.6",
+    "@noir-lang/acvm_js": "github:noir-lang/acvm-simulator-wasm",
+    "@iarna/toml": "^2.2.5",
+    "alchemy-sdk": "^2.9.2",
+    "dotenv": "^16.3.1",
+    "ethers": "^5.7.2",
+    "fflate": "^0.8.0",
+    "rlp": "^3.0.0",
+    "blake2": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.5",
+    "typescript": "^5.1.6",
+    "vitest": "^0.34.3"
+  }
+}
