@@ -1,4 +1,4 @@
-
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.9;
 
 library ZKBridgeUtils {
@@ -22,5 +22,21 @@ library ZKBridgeUtils {
             getClaimId(slot),
             getAddress(slot)
         );
+    }
+
+    function getAmount(uint256 slot) pure internal returns (uint32 amount) {
+        amount = uint32(slot >> 256-32);
+    }
+    function getCurrency(uint256 slot) pure internal returns (uint16 currency) {
+        currency = uint16((slot << 32) >> 256-16);
+    }
+    function getChainId(uint256 slot) pure internal returns (uint16 chainId) {
+        chainId = uint16((slot << 32+16) >> 256-16);
+    }
+    function getClaimId(uint256 slot) pure internal returns (uint32 claimId) {
+        claimId = uint32((slot << (32+16+16)) >> (256 - 32));
+    }
+    function getAddress(uint256 slot) pure internal returns (address address_) {
+        address_ = address(uint160((slot << (32+16+16+32)) >> (256 - 160)));
     }
 }
