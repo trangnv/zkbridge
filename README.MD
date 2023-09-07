@@ -42,3 +42,13 @@ Goerli
 - the proof has the chainId
 - nft has the balance and claim againt that nft
 - Redeem on chain A (when made mistake)
+
+ERC1155
+
+```bash
+| Name               | Type                                            | Slot | Offset | Bytes | Contract                  |
+|--------------------|-------------------------------------------------|------|--------|-------|---------------------------|
+| _balances          | mapping(uint256 => mapping(address => uint256)) | 0    | 0      | 32    | src/Vault1155.sol:MyToken |
+| _operatorApprovals | mapping(address => mapping(address => bool))    | 1    | 0      | 32    | src/Vault1155.sol:MyToken |
+| _uri               | string                                          | 2    | 0      | 32    | src/Vault1155.sol:MyToken |
+```

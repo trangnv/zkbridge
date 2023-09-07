@@ -106,7 +106,7 @@ pragma solidity ^0.8.20;
 // }
 
 contract Vault {
-    IERC20 public immutable token;
+    t
 
     struct Claim {
         uint amount;

@@ -64,26 +64,25 @@ export async function generate() {
   writeToToml(data, path);
 }
 export async function getStorageSlot() {
-  // const address =
-  //   "0x77fCF983241ceb7e8c928102f6fe63A1de834c5D".toLocaleLowerCase();
-  // const slot = "0x0";
-  // const paddedAddress = ethers.utils.hexZeroPad(address, 32);
-  // const paddedSlot = ethers.utils.hexZeroPad(slot, 32);
-  // const concatenated = ethers.utils.concat([paddedAddress, paddedSlot]);
-  // const hash = ethers.utils.keccak256(concatenated);
-  // console.log("storage slot:", hash);
+  /*
+  | _balances          | mapping(uint256 => mapping(address => uint256)) | 0    | 0      | 32    | src/Vault1155.sol:MyToken |
+  */
+  const index = "0x1"; // NFT index
+  const paddedIndex = ethers.utils.hexZeroPad(index, 32);
+  const slot = "0x0"; // _balance slot
+  const paddedSlot = ethers.utils.hexZeroPad(slot, 32);
+  const concatenated1 = ethers.utils.concat([paddedIndex, paddedSlot]);
+  const hash1 = ethers.utils.keccak256(concatenated1);
+  console.log("hash1:", hash1);
 
-  const _v =
-    "0x3a74720913a16d4e630a557ac2caac6e9d752b9b1bce3f5eed475aa86f7df199";
-  const v = ethers.utils.hexZeroPad(_v, 32);
-  const _hash = ethers.utils.keccak256(v);
-  console.log("hash:", _hash);
+  const address =
+    "0x77fCF983241ceb7e8c928102f6fe63A1de834c5D".toLocaleLowerCase();
 
-  // const result = await provider.getStorageAt(
-  //   "0xC216FdC8fb87A151d69313e18a80a58bebBA7267",
-  //   hash
-  // );
-  // console.log("result ethers:", parseInt(result, 16));
+  const paddedAddress = ethers.utils.hexZeroPad(address, 32);
+  const concatenated2 = ethers.utils.concat([paddedAddress, hash1]);
+  console.log("concatenated2:", concatenated2);
+  const hash2 = ethers.utils.keccak256(concatenated2);
+  console.log("storage slot:", hash2);
 }
 
 getStorageSlot();
