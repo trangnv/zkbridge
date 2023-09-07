@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import "./plonk_vk.sol";
+import {UltraVerifier} from "./plonk_vk.sol";
 
 import {ZKBridgeUtils} from "../commons/EVM/ZKBridgeUtils.sol";
 
-import {ZKBCurrenAndChainManagement} from "../commons/Admin/ZKBCurrencyAndChainManagement.sol";
+import {ZKBCurrencyAndChainManagement} from "../commons/Admin/ZKBCurrencyAndChainManagement.sol";
 
-contract ZKBridgeSatellite is ZKBCurrenAndChainManagement {
+contract ZKBridgeSatellite is ZKBCurrencyAndChainManagement {
   UltraVerifier public verifier;
 
   mapping(uint32 => bool) private claimHasBeenClaimed;
@@ -19,10 +19,10 @@ contract ZKBridgeSatellite is ZKBCurrenAndChainManagement {
     chainId = _chainId;
   }
 
-  function claim(bytes memory _proof, uint256[] memory _publicInputs) public {
+  function claim(bytes memory _proof, bytes32[] memory _publicInputs) public {
     require(verifier.verify(_proof, _publicInputs), "Invalid proof");
 
-    (uint32 amount, uint16 currency, uint16 _chainId, uint32 claimId, address account) = ZKBridgeUtils.getValuesFrom(_publicInputs[0]);
+    (uint32 amount, uint16 currency, uint16 _chainId, uint32 claimId, address account) = ZKBridgeUtils.getValuesFrom(uint256(_publicInputs[0]));
 
     require(chainId == _chainId, "This claim is not supposed to be claimed on this chain");
     require(claimHasBeenClaimed[claimId] == false, "Claim has already been claimed");
