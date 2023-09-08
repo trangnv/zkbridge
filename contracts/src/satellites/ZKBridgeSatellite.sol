@@ -5,18 +5,20 @@ import {UltraVerifier} from "./plonk_vk.sol";
 
 import {ZKBridgeUtils} from "../commons/EVM/ZKBridgeUtils.sol";
 
-import {ZKBCurrencyAndChainManagement} from "../commons/Admin/ZKBCurrencyAndChainManagement.sol";
+import {ZKBVaultManagement} from "../commons/Admin/ZKBVaultManagement.sol";
 
-contract ZKBridgeSatellite is ZKBCurrencyAndChainManagement {
+contract ZKBridgeSatellite is ZKBVaultManagement {
   UltraVerifier public verifier;
 
   mapping(uint32 => bool) private claimHasBeenClaimed;
 
-  uint16 chainId;
+  uint16 public internalChainId;
+  bytes32 public internalChainName;
 
-  constructor(UltraVerifier _verifier, uint16 _chainId) {
+  // Marks the ZKBVaultManagement as satellite (isMaster = false)
+  constructor(UltraVerifier _verifier, uint16 _chainId) ZKBVaultManagement(false) {
     verifier = _verifier;
-    chainId = _chainId;
+    internalChainId = _chainId;
   }
 
   function claim(bytes memory _proof, bytes32[] memory _publicInputs) public {
@@ -24,7 +26,7 @@ contract ZKBridgeSatellite is ZKBCurrencyAndChainManagement {
 
     (uint32 amount, uint16 currency, uint16 _chainId, uint32 claimId, address account) = ZKBridgeUtils.getValuesFrom(uint256(_publicInputs[0]));
 
-    require(chainId == _chainId, "This claim is not supposed to be claimed on this chain");
+    require(internalChainId == _chainId, "This claim is not supposed to be on this chain");
     require(claimHasBeenClaimed[claimId] == false, "Claim has already been claimed");
 
     _mintTokens(account, currency, amount);
