@@ -22,7 +22,6 @@ contract ZKBERC20 is ERC20 {
     controller = _controller;
   }
 
-  // TODO: Add permission stuff
   function mint(address _to, uint32 _amount) external onlyController() {
     _mint(_to, _amount);
   }

@@ -2,18 +2,20 @@
 pragma solidity ^0.8.9;
 
 import {ZKBERC20} from "../Tokens/ZKBERC20.sol";
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
 // TODO: Extract all management into a class since it's shared by both currenty and chain in the same way
 contract ZKBVaultManagement {
   // Currencies
   mapping(uint16 => uint8) public supportedCurrencies;
   mapping(uint16 => address) public currenciesContract;
-  uint16 private currencyCounter = 0;
+  uint16 private currencyCounter = 1;
 
   // Chains
   mapping(uint16 => uint8) public supportedChains;
   mapping(uint16 => bytes32) public supportedChainsNames;
-  uint16 private chainCounter = 0;
+  // 1 is the master chain
+  uint16 private chainCounter = 2;
 
   // currencyId => balance
   mapping(uint16 => uint256) public currencyBalances;
@@ -27,11 +29,11 @@ contract ZKBVaultManagement {
 
   bool private isMaster = false;
 
-  uint16 chaindId;
+  uint16 chainId;
 
-  constructor(bool _isMaster, uint16 _chaindId) {
+  constructor(bool _isMaster, uint16 _chainId) {
     isMaster = _isMaster;
-    chaindId = _chaindId;
+    chainId = _chainId;
   }
 
   // Layout mapping of the currency support
@@ -43,6 +45,30 @@ contract ZKBVaultManagement {
     TRANSFER,
     DEPOSIT,
     CHANGE_STATUS
+  }
+
+  function _getFlagValue(Actions _action) internal returns (uint8 _value) {
+    _value = 1 >> uint8(_action);
+    return _value;
+  }
+
+  function _getAllSupportedCurrencies() internal view returns (bytes32[] memory currencies_) {
+    for(uint16 idx = currencyCounter-1; idx > 0; idx--) {
+      if(supportedCurrencies[idx] > 0) {
+        // TODO: Test this, it feels like this will take a long time
+        currencies_[idx] = _getCurrencyTicker(idx);
+      }
+    }
+    return currencies_;
+  }
+
+  function _getAllSupportedChains() internal view returns (bytes32[] memory chains_) {
+    for(uint16 idx = chainCounter-1; idx > 1; idx--) {
+      if(supportedChains[idx] > 0) {
+        chains_[idx] = supportedChainsNames[idx];
+      }
+    }
+    return chains_;
   }
 
   function _getCurrencyContractAddress(uint16 _currency) internal view returns (address) {
@@ -177,8 +203,9 @@ contract ZKBVaultManagement {
     return supportedChains[_chain];
   }
 
-  function _setCurrencyContractAddress(uint16 _currency, address _contractAddress) internal returns (bool) {
+  function _setCurrencyContractAddress(uint16 _currency, address _contractAddress) internal returns (address) {
     // TODO: Check what conditions could be that this should not be allowed + proper permissions
+    // TODO: ⚠️ What do we do with previous contract address? Should we resign controller status and lock it out?
     currenciesContract[_currency] = _contractAddress;
 
     if(isMaster == false) {
@@ -186,7 +213,7 @@ contract ZKBVaultManagement {
       ZKBERC20(_contractAddress).setController(address(this));
     }
 
-    return true;
+    return currenciesContract[_currency];
   }
 
   // This is to be used on the satellite chain
@@ -198,6 +225,7 @@ contract ZKBVaultManagement {
   function _beforeDeposit(address _depositor, uint16 _currency, uint16 _chainId, uint32 _amount) internal returns (bool) {
     require(isMaster == true, "Funds can only be deposited on the master contract");
     require(supportedChains[_chainId] > 0, "This chain is not supported");
+    require(_chainSupportsAction(_chainId, Actions.MINT) && _chainSupportsAction(_chainId, Actions.CLAIM), "This chain is not supported");
     require(_currencySupportsAction(_currency, Actions.DEPOSIT), "This currency does not support deposit at the moment");
     return true;
   }
@@ -212,6 +240,7 @@ contract ZKBVaultManagement {
 
     currencyBalances[_currency] += _amount;
     currencyReserves[_currency] += _reservesAmount;
+    chainCurrencyBalances[_chainId][_currency] += _amount;
 
     return _finalAmount;
   }
