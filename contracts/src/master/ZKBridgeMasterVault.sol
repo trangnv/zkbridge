@@ -58,15 +58,15 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
     currencyReserves[_currency] = 0;
   }
 
-  function getSupportedCurrencies() external returns (bytes32[]) {
+  function getSupportedCurrencies() external returns (bytes32[] memory) {
     return _getAllSupportedCurrencies();
   }
 
-  function getSupportedChains() external returns (bytes32[]) {
+  function getSupportedChains() external returns (bytes32[] memory) {
     return _getAllSupportedChains();
   }
 
-  function addSupportedCurrency(bytes _name, address _contractAddress) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 currencyId_) {
+  function addSupportedCurrency(bytes32 _name, address _contractAddress) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 currencyId_) {
     uint8 currencyStatus = _getFlagValue(Actions.MINT) &
       _getFlagValue(Actions.BURN) &
       _getFlagValue(Actions.CLAIM) &
@@ -81,11 +81,11 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
   }
 
   function setSupportedCurrencyFlag(uint16 _currency, Actions _action, bool _enabled) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint8) {
-    require(_action != Actions.CHANGE_STATUS || (Actions_action == Actions.CHANGE_STATUS && (msg.sender == owner || msg.sender == controller)), "Changing the CHANGE_STATUS flag requires elevated permissions");
+    require(_action != Actions.CHANGE_STATUS || (_action == Actions.CHANGE_STATUS && (msg.sender == owner || msg.sender == controller)), "Changing the CHANGE_STATUS flag requires elevated permissions");
     return _setCurrencyActionSupportStatus(_currency, _action, _enabled);
   }
 
-  function addSupportedChain(bytes _name) external onlyLevelAndUpOrOwnerOrController(PermissionLevel) returns (uint16 chainId_) {
+  function addSupportedChain(bytes32 _name) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 chainId_) {
     uint8 chainStatus = _getFlagValue(Actions.CLAIM) &
       _getFlagValue(Actions.REDEEM) &
       _getFlagValue(Actions.TRANSFER);
@@ -93,7 +93,7 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
   }
 
   function setSupportedChainFlag(uint16 _currency, Actions _action, bool _enabled) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint8) {
-    require(_action != Actions.CHANGE_STATUS || (Actions_action == Actions.CHANGE_STATUS && (msg.sender == owner || msg.sender == controller)), "Changing the CHANGE_STATUS flag requires elevated permissions");
+    require(_action != Actions.CHANGE_STATUS || (_action == Actions.CHANGE_STATUS && (msg.sender == owner || msg.sender == controller)), "Changing the CHANGE_STATUS flag requires elevated permissions");
     return _setCurrencyActionSupportStatus(_currency, _action, _enabled);
   }
 }

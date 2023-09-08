@@ -27,7 +27,7 @@ contract ZKBVaultManagement {
   // Fees in bips (100 = 0.01%)
   uint16 public feesInBips = 100;
 
-  bool private isMaster = false;
+  bool internal isMaster = false;
 
   uint16 chainId;
 
@@ -48,18 +48,23 @@ contract ZKBVaultManagement {
   }
 
   function _getFlagValue(Actions _action) internal returns (uint8 _value) {
-    _value = 1 >> uint8(_action);
-    return _value;
+    _value = uint8(1 >> uint8(_action));
   }
 
   function _getAllSupportedCurrencies() internal view returns (bytes32[] memory currencies_) {
     for(uint16 idx = currencyCounter-1; idx > 0; idx--) {
       if(supportedCurrencies[idx] > 0) {
         // TODO: Test this, it feels like this will take a long time
-        currencies_[idx] = _getCurrencyTicker(idx);
+        string memory ticker = _getCurrencyTicker(idx);
+        bytes32 currencyTicker;
+
+        assembly {
+          currencyTicker := mload(add(ticker, 32))
+        }
+
+        currencies_[idx] = currencyTicker;
       }
     }
-    return currencies_;
   }
 
   function _getAllSupportedChains() internal view returns (bytes32[] memory chains_) {

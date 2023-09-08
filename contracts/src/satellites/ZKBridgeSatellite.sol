@@ -13,10 +13,10 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
 
   // claimId => reClaimId
   mapping(uint32 => uint8) private redemptionClaims;
+  // claimId => slot
   mapping(uint32 => uint256) private redemptionClaimsSlot;
-
+  // address => claimId => claimProcessId
   mapping(address => mapping(uint32 => uint32)) private claimProcesses;
-  // Address => claimId => claimProcessId
   uint32 private claimProcessesCounter = 0;
   mapping (bytes24 => bool) noncesUsed;
 
@@ -34,9 +34,9 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
   uint16 public internalChainId;
   bytes32 public internalChainName;
 
-  event ClaimProcessStarted(uint32 indexed claimId, uint32 indexed claimProcessId, uint32 indexed destinationAccount, uint32 indexed initiator);
-  event ClaimProcessStatusChanged(uint32 indexed claimId, uint32 claimProcessId, uint8 indexed claimProcessStage, address indexed initiator, address destinationAccount);
-  event ClaimProcessCompleted(uint32 indexed claimId, uint32 indexed claimProcessId, uint32 indexed destinationAccount, uint32 indexed initiator);
+  event ClaimProcessStarted(uint32 indexed claimId, uint32 indexed claimProcessId, address indexed destinationAccount, address initiator);
+  event ClaimProcessStatusChanged(uint32 indexed claimId, uint32 claimProcessId, uint8 indexed claimProcessStage, address initiator, address destinationAccount);
+  event ClaimProcessCompleted(uint32 indexed claimId, uint32 indexed claimProcessId, address indexed destinationAccount, address initiator);
 
   // Marks the ZKBVaultManagement as satellite (isMaster = false)
   constructor(UltraVerifier _proofVerifier, address _stateVerifier, uint16 _chainId) ZKBPermissionsController() ZKBVaultManagement(false, _chainId) {
@@ -44,7 +44,7 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
     internalChainId = _chainId;
   }
 
-  function setProofVerifier(address _proofVerifier) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.CONTROLLER) {
+  function setProofVerifier(UltraVerifier _proofVerifier) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.CONTROLLER) {
     // TODO: Anything we should do with the previous one?
     proofVerifier = _proofVerifier;
   }
@@ -61,7 +61,7 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
     (uint32 amount, uint16 currency, uint16 _chainId, uint32 claimId, address account) = ZKBridgeUtils.getValuesFrom(slot);
 
     require(internalChainId == _chainId, "This claim is not supposed to be on this chain");
-    require(redemptionClaims[claimId] == false, "Claim has already been redeemed");
+    require(redemptionClaims[claimId] == uint8(ClaimProcessStages.NONE), "Claim has already been redeemed or redemption has already started");
     require(claimProcesses[account][claimId] == 0, "A claim verification process has already started");
 
     claimId_ = claimId;
@@ -74,25 +74,26 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
 
     emit ClaimProcessStarted(claimId_, claimProcessId_, account, msg.sender);
 
-    redemptionClaims[claimId_] = ClaimProcessStages.CLAIM_STARTED;
+    redemptionClaims[claimId_] = uint8(ClaimProcessStages.CLAIM_STARTED);
 
-    emit ClaimProcessStatusChanged(claimId_, claimProcessId_, account, redemptionClaims[claimId_], msg.sender);
+    emit ClaimProcessStatusChanged(claimId_, claimProcessId_, redemptionClaims[claimId_], msg.sender, account);
 
     return (claimId_, claimProcessId_);
   }
 
-  function _markClaimProcess(uint32 _claimProcessId, address _destinationAccount, bool _confirmed) public onlyStateVerifier {
+  function _markClaimProcess(uint32 _claimId, address _destinationAccount, bool _confirmed) public onlyStateVerifier {
     if(_confirmed == true) {
-      redemptionClaims[claimId_] = ClaimProcessStages.CLAIM_VERIFIED;
+      redemptionClaims[_claimId] = uint8(ClaimProcessStages.CLAIM_VERIFIED);
     } else {
-      redemptionClaims[claimId_] = ClaimProcessStages.CLAIM_REJECTED;
+      redemptionClaims[_claimId] = uint8(ClaimProcessStages.CLAIM_REJECTED);
     }
+    uint32 claimProcessId_ = claimProcesses[_destinationAccount][_claimId];
 
-    emit ClaimProcessStatusChanged(claimId_, claimProcessId_, account, redemptionClaims[claimId_], msg.sender);
+    emit ClaimProcessStatusChanged(_claimId, claimProcessId_, redemptionClaims[_claimId], msg.sender, _destinationAccount);
   }
 
   function completeClaimProcess(bytes memory _signature, uint32 _claimId, bytes24 _nonce, uint32 _processClaimId) external {
-    require(redemptionClaims[_claimId] == ClaimProcessStages.CLAIM_VERIFIED, "The claim cannot be redeemed yet");
+    require(redemptionClaims[_claimId] == uint8(ClaimProcessStages.CLAIM_VERIFIED), "The claim cannot be redeemed yet");
     require(noncesUsed[_nonce] == false, "Nonce has already been consumed, please generate a new signature");
 
     // this recreates the message that was signed on the client
@@ -102,17 +103,17 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
     address signer = ecrecover(prefixedHashedMessage, _v, _r, _s);
     noncesUsed[_nonce] = true;
 
-    (uint32 amount_, uint16 currency_, uint16 chainId_, uint32 claimId_, address account_, uint32 claimProcessId_, string memory status_) = getMetadataForClaimId(_claimId);
+    (uint32 amount_, uint16 currency_, , uint32 claimId_, address account_, uint32 claimProcessId_, ) = getMetadataForClaimId(_claimId);
 
     require(account_ == signer, "The signature must come from the destination address");
 
     // The process is complete at this point, everything has been validated. Releasing the tokens.
-    emit ClaimProcessStatusChanged(claimId_, claimProcessId_, amount_, redemptionClaims[claimId_], msg.sender);
+    emit ClaimProcessStatusChanged(claimId_, claimProcessId_,  redemptionClaims[claimId_], msg.sender, account_);
 
-    redemptionClaims[_claimId] = true;
+    redemptionClaims[_claimId] = uint8(ClaimProcessStages.CLAIM_COMPLETED);
     _mintTokens(account_, currency_, amount_);
 
-    emit ClaimProcessCompleted(claimId_, claimProcessId_, account, msg.sender);
+    emit ClaimProcessCompleted(claimId_, claimProcessId_, account_, msg.sender);
   }
 
   function getClaimProcessStagesLabels() public pure returns (string[7] memory cps_) {
