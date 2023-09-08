@@ -64,34 +64,7 @@ contract ZKBSupportFlags {
         _supportsAction(_item, Actions.CHANGE_STATUS) == true
       ), "Currency does not support changing all flags at once");
 
-    // Need to unit test that
-    if (uint8(_action) > 0 && _enabled == true) {
-      supportStorage[_item] |= uint8(1 << uint8(_action));
-    } else {
-      supportStorage[_item] &= ~uint8(1 << uint8(_action));
-    }
-
-    return supportStorage[_item];
-  }
-
-  // Action comes from the constants MINT, BURN, CLAIM, REDEEM, TRANSFER, DEPOSIT
-  function _setSupportStatus(uint16 _item, uint8 _status) internal returns (uint8) {
-    // TODO: Test this
-    // We should only be able to update the full flag set if the currency was not previously supporter (0) or
-    // if it is (>0) and the action flag CHANGE_STATUS is set to true, this effectively locks full flag statuses overwrite
-    require(
-      supportStorage[_item] == 0 ||
-      (
-        supportStorage[_item] > 0 &&
-        _supportsAction(_item, Actions.CHANGE_STATUS) == true
-      ), "Currency does not support changing all flags at once");
-
-    // Need to unit test that
-    if (uint8(_action) > 0 && _enabled == true) {
-      supportStorage[_item] |= uint8(1 << uint8(_action));
-    } else {
-      supportStorage[_item] &= ~uint8(1 << uint8(_action));
-    }
+    supportStorage[_item] = _status;
 
     return supportStorage[_item];
   }

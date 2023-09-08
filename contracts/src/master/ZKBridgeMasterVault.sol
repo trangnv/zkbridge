@@ -1,6 +1,6 @@
 pragma solidity ^0.8.9;
 
-// Contains all the to / from claim bit packings
+// Contains all the to / from claim bit packing
 import {ZKBridgeUtils} from "../commons/EVM/ZKBridgeUtils.sol";
 
 import {ZKBVaultManagement} from "../commons/Admin/ZKBVaultManagement.sol";
@@ -15,18 +15,18 @@ contract ZKBridgeMasterVault is ZKBVaultManagement, ReentrancyGuard {
   // Each claim is laid out as follows (see ZKBridgeUtils)
   // [ Amount, Currency, ChainId, ClaimId,  Address]
   // [32 bits,  16 bits, 16 bits, 32 bits, 160 bits]
-  mapping(uint256 => uint256) public claims;
-  uint private claimId = 1; // Master NFT counter, ID of the "next" NFT to mint
+  mapping(uint32 => uint256) public claims;
+  uint32 private claimId = 0; // Master NFT counter, ID of the "next" NFT to mint
 
   // Properties / mappings / enums / structs / events
   //
   // TODO:
   //   - Re-entrances?
 
-  event ClaimCreated(address indexed from, uint16 indexed currency, uint16 internalChainId, uint32 indexed finalAmount, uint32 fees);
+  event ClaimReady(address indexed from, uint16 indexed currency, uint16 internalChainId, uint32 indexed finalAmount, uint32 fees);
 
-  // Marks the ZKBVaultManagement as master
-  constructor() ZKBVaultManagement(true) {
+  // Marks the ZKBVaultManagement as master, chainId 1
+  constructor() ZKBVaultManagement(true, 1) {
     owner = msg.sender;
   }
 
@@ -45,10 +45,10 @@ contract ZKBridgeMasterVault is ZKBVaultManagement, ReentrancyGuard {
     // Take notes of what happened, take a small amount as a fee, and build the claim
     uint32 finalAmount = _afterDeposit(_account, _currency, _chainId, _amount);
 
-    claims[claimId] = ZKBridgeUtils.getSlotFrom(finalAmount, _currency, _chainId, _claimId, _account);
     claimId++;
+    claims[claimId] = ZKBridgeUtils.getSlotFrom(finalAmount, _currency, _chainId, claimId, _account);
 
-    emit ClaimCreated(_account, _currency, _chainId, _amount, finalAmount);
+    emit ClaimReady(_account, _currency, _chainId, _amount, finalAmount);
   }
 
   // TODO:
@@ -58,4 +58,7 @@ contract ZKBridgeMasterVault is ZKBVaultManagement, ReentrancyGuard {
   // - Public APIs for listing supported chains and their related names
   // - Public APIs for listing supported currencies and their related tickers
   // - Public permissioned APIs to set the fees
+
+
+
 }

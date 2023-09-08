@@ -16,7 +16,7 @@ contract ZKBridgeSatellite is ZKBVaultManagement {
   bytes32 public internalChainName;
 
   // Marks the ZKBVaultManagement as satellite (isMaster = false)
-  constructor(UltraVerifier _verifier, uint16 _chainId) ZKBVaultManagement(false) {
+  constructor(UltraVerifier _verifier, uint16 _chainId) ZKBVaultManagement(false, _chainId) {
     verifier = _verifier;
     internalChainId = _chainId;
   }
