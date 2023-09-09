@@ -61,11 +61,11 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
   }
 
   function addSupportedCurrency(address _contractAddress) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 currencyId_) {
-    uint8 currencyStatus = _getFlagValue(Actions.MINT) &
-      _getFlagValue(Actions.BURN) &
-      _getFlagValue(Actions.CLAIM) &
-      _getFlagValue(Actions.REDEEM) &
-      _getFlagValue(Actions.TRANSFER) &
+    uint8 currencyStatus = _getFlagValue(Actions.MINT) |
+      _getFlagValue(Actions.BURN) |
+      _getFlagValue(Actions.CLAIM) |
+      _getFlagValue(Actions.REDEEM) |
+      _getFlagValue(Actions.TRANSFER) |
       _getFlagValue(Actions.DEPOSIT);
     currencyId_ = _addNewSupportedCurrency(currencyStatus, _contractAddress);
   }
@@ -80,8 +80,8 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
   }
 
   function addSupportedChain(string calldata _name) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 chainId_) {
-    uint8 chainStatus = _getFlagValue(Actions.CLAIM) &
-            _getFlagValue(Actions.REDEEM) &
+    uint8 chainStatus = _getFlagValue(Actions.CLAIM) |
+            _getFlagValue(Actions.REDEEM) |
             _getFlagValue(Actions.TRANSFER);
     chainId_ = _addNewSupportedChain(_name, chainStatus);
   }

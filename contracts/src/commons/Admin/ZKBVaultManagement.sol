@@ -47,14 +47,14 @@ contract ZKBVaultManagement {
     CHANGE_STATUS
   }
 
-  function _getFlagValue(Actions _action) internal pure returns (uint8 _value) {
-    _value = uint8(1 >> uint8(_action));
+  function _getFlagValue(Actions _action) internal pure returns (uint8) {
+    return uint8(uint8(1) << uint8(_action));
   }
 
   function _getAllSupportedCurrencies() internal view returns (string[] memory currencies_) {
+    string[] memory currencies_ = new string[](currencyCounter);
     for(uint16 idx = 1; idx < currencyCounter; idx++) {
       if(supportedCurrencies[idx] > 0) {
-        // TODO: Test this, it feels like this will take a long time
         string memory ticker = _getCurrencyTicker(idx);
 //        bytes32 currencyTicker;
 //
@@ -70,10 +70,11 @@ contract ZKBVaultManagement {
   }
 
   function _getAllSupportedChains() internal view returns (string[] memory chains_) {
-    for(uint16 idx = 0; idx < chainCounter; idx++) {
-//      if(supportedChains[idx] > 0) {
+    string[] memory chains_ = new string[](chainCounter);
+    for(uint16 idx = 2; idx < chainCounter; idx++) {
+      if(supportedChains[idx] > 0) {
         chains_[idx] = string(supportedChainsNames[idx]);
-//      }
+      }
     }
     return chains_;
   }

@@ -27,7 +27,7 @@ contract TestZKBridgeMasterVault is Test {
     }
     function testAddCurrency() external {
         vm.startPrank(USER);
-        vault.addSupportedCurrency("Test", address(erc20));
+        vault.addSupportedCurrency(address(erc20));
         vm.stopPrank();
     }
 }

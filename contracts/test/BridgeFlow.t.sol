@@ -41,21 +41,14 @@ contract BridgeFlow is Test {
     uint16 chainId = zkbMasterVault.addSupportedChain("zkSync Testnet");
     uint256 sizeAfter = zkbMasterVault.getSupportedChains().length;
     assertGt(chainId, 0);
-    assertGt(sizeBefore, sizeAfter);
+    assertGt(sizeAfter, sizeBefore);
   }
 
   function test_AddSupportedChainOnSatellite() public {
+    // Chains are not allowed to add on Satellites
     vm.expectRevert();
     zkSatellite.addSupportedChain("zkSync Testnet");
   }
-
-//  function test_GetSupportedChainOnSatellite() public {
-//    uint256 sizeBefore = zkSatellite.getSupportedChains().length;
-//    uint16 chainId = zkSatellite.addSupportedChain("zkSync Testnet");
-//    uint256 sizeAfter = zkSatellite.getSupportedChains().length;
-//    assertGt(chainId, 0);
-//    assertGt(sizeBefore, sizeAfter);
-//  }
 
   function test_AddSupportedCurrencyOnMaster() public {
     uint16 currencyId = zkbMasterVault.addSupportedCurrency(address(mockERC20_1));
