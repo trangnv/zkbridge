@@ -91,14 +91,16 @@ contract BridgeFlow is Test {
   }
 
   function test_Deposit() public {
-    uint32 amount = 100;
+    uint32 amount = 1000000;
     mockERC20_1.mint(USER, amount);
-    mockERC20_1.approve(address(zkbMasterVault), amount);
 
     uint16 chainId = zkbMasterVault.addSupportedChain("zkSync Testnet");
     uint16 currencyId = zkbMasterVault.addSupportedCurrency(address(mockERC20_1));
 
+    vm.startPrank(USER);
+    mockERC20_1.approve(address(zkbMasterVault), amount);
     zkbMasterVault.deposit(amount, currencyId, chainId, USER);
+    vm.stopPrank();
   }
 
 /*  function testFuzz_SetNumber(uint256 x) public {
