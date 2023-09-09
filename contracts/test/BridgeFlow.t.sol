@@ -14,6 +14,7 @@ contract BridgeFlow is Test {
   mockERC20 public mockERC20_1;
   ZKBERC20 public zkbERC20_1;
   UltraVerifier public ultraVerifier;
+  address public constant USER = address(1);
 
   function setUp() public {
     ultraVerifier = new UltraVerifier();
@@ -90,6 +91,14 @@ contract BridgeFlow is Test {
   }
 
   function test_Deposit() public {
+    uint32 amount = 100;
+    mockERC20_1.mint(USER, amount);
+    mockERC20_1.approve(address(zkbMasterVault), amount);
+
+    uint16 chainId = zkbMasterVault.addSupportedChain("zkSync Testnet");
+    uint16 currencyId = zkbMasterVault.addSupportedCurrency(address(mockERC20_1));
+
+    zkbMasterVault.deposit(amount, currencyId, chainId, USER);
   }
 
 /*  function testFuzz_SetNumber(uint256 x) public {
