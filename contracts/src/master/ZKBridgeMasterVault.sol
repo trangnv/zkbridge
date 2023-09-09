@@ -90,7 +90,8 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
   }
 
   function addSupportedChain(string calldata _name) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 chainId_) {
-    uint8 chainStatus = _getFlagValue(Actions.CLAIM) |
+    uint8 chainStatus = _getFlagValue(Actions.MINT) |
+            _getFlagValue(Actions.CLAIM) |
             _getFlagValue(Actions.REDEEM) |
             _getFlagValue(Actions.TRANSFER);
     chainId_ = _addNewSupportedChain(_name, chainStatus);
@@ -100,4 +101,8 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
     require(_action != Actions.CHANGE_STATUS || (_action == Actions.CHANGE_STATUS && (msg.sender == owner || msg.sender == controller)), "Changing the CHANGE_STATUS flag requires elevated permissions");
     return _setCurrencyActionSupportStatus(_currency, _action, _enabled);
   }
+
+//  function getChainStatus(uint16 _chainId) public view returns (uint8) {
+//    return supportedChains[_chainId];
+//  }
 }

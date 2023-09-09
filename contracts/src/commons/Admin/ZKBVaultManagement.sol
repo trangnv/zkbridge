@@ -233,7 +233,7 @@ contract ZKBVaultManagement {
   function _beforeDeposit(address /* _depositor */, uint16 _currency, uint16 _chainId, uint32 /* _amount */) internal view returns (bool) {
     require(isMaster == true, "Funds can only be deposited on the master contract");
     require(supportedChains[_chainId] > 0, "This chain is not supported");
-    require(_chainSupportsAction(_chainId, Actions.MINT) && _chainSupportsAction(_chainId, Actions.CLAIM), "This chain is not supported");
+    require(_chainSupportsAction(_chainId, Actions.MINT) && _chainSupportsAction(_chainId, Actions.CLAIM), "This chain does not support this action");
     require(_currencySupportsAction(_currency, Actions.DEPOSIT), "This currency does not support deposit at the moment");
     return true;
   }
