@@ -41,10 +41,10 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
   // - Public APIs for claiming withdrawals from satellites to master
   // - Public permissioned APIs to set the fees
 
-  function startRedeemClaim() external returns (bool) {
-    // TODO
-    return false;
-  }
+//  function startRedeemClaim() external returns (bool) {
+//    // TODO
+//    return false;
+//  }
 
   function withdrawCurrencyReserve(uint16 _currency, address _account) onlyLevelAndUpOrOwnerOrController(PermissionLevel.CONTROLLER) external {
     require(isMaster == true, "Only available on MasterVault");
@@ -58,20 +58,24 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
     currencyReserves[_currency] = 0;
   }
 
-  function getSupportedCurrencies() external returns (bytes32[] memory) {
+  function getSupportedCurrencies() external view returns (string[] memory) {
     return _getAllSupportedCurrencies();
   }
 
-  function getSupportedChains() external returns (bytes32[] memory) {
+  function getSupportedChains() external view returns (string[] memory) {
     return _getAllSupportedChains();
   }
 
-  function addSupportedCurrency(bytes32 _name, address _contractAddress) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 currencyId_) {
-    uint8 currencyStatus = _getFlagValue(Actions.MINT) &
-      _getFlagValue(Actions.BURN) &
-      _getFlagValue(Actions.CLAIM) &
-      _getFlagValue(Actions.REDEEM) &
-      _getFlagValue(Actions.TRANSFER) &
+  function getChainName(uint16 _chainId) external view returns (string memory) {
+    return _getChainName(_chainId);
+  }
+
+  function getCurrencyName(uint16 _currencyId) external view returns (string memory) {
+    return _getCurrencyTicker(_currencyId);
+  }
+
+  function addSupportedCurrency(address _contractAddress) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 currencyId_) {
+    uint8 currencyStatus = _getFlagValue(Actions.REDEEM) &
       _getFlagValue(Actions.DEPOSIT);
     currencyId_ = _addNewSupportedCurrency(currencyStatus, _contractAddress);
   }
@@ -85,7 +89,7 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
     return _setCurrencyActionSupportStatus(_currency, _action, _enabled);
   }
 
-  function addSupportedChain(bytes32 _name) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 chainId_) {
+  function addSupportedChain(string calldata _name) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 chainId_) {
     uint8 chainStatus = _getFlagValue(Actions.CLAIM) &
       _getFlagValue(Actions.REDEEM) &
       _getFlagValue(Actions.TRANSFER);

@@ -17,28 +17,29 @@ contract ZKBPermissionsController {
 
   constructor () {
     owner = msg.sender;
-    controller = msg.sender;
+    _setOwner(msg.sender);
+    _setController(msg.sender);
   }
 
-  function _getOwner() internal returns (address) {
+  function _getOwner() internal view returns (address) {
     return owner;
   }
 
   function _setOwner(address _newOwner) internal onlyOwner returns (address) {
     // Downgrade previous owner
-    _setPermissionLevel(_newOwner, PermissionLevel.NONE);
-    _setPermissionLevel(owner, PermissionLevel.OPERATOR);
+    _setPermissionLevel(owner, PermissionLevel.NONE);
+    _setPermissionLevel(_newOwner, PermissionLevel.ADMIN);
     owner = _newOwner;
     return owner;
   }
 
-  function _getController() internal returns (address) {
+  function _getController() internal view returns (address) {
     return controller;
   }
 
   function _setController(address _newController) internal onlyLevelAndUpOrOwnerOrController(PermissionLevel.CONTROLLER) returns (address) {
-    _setPermissionLevel(_newController, PermissionLevel.NONE);
-    _setPermissionLevel(controller, PermissionLevel.OPERATOR);
+    _setPermissionLevel(controller, PermissionLevel.NONE);
+    _setPermissionLevel(_newController, PermissionLevel.CONTROLLER);
     controller = _newController;
     return controller;
   }

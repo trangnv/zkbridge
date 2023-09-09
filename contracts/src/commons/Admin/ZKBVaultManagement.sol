@@ -13,7 +13,7 @@ contract ZKBVaultManagement {
 
   // Chains
   mapping(uint16 => uint8) public supportedChains;
-  mapping(uint16 => bytes32) public supportedChainsNames;
+  mapping(uint16 => string) public supportedChainsNames;
   // 1 is the master chain
   uint16 private chainCounter = 2;
 
@@ -47,31 +47,33 @@ contract ZKBVaultManagement {
     CHANGE_STATUS
   }
 
-  function _getFlagValue(Actions _action) internal returns (uint8 _value) {
+  function _getFlagValue(Actions _action) internal pure returns (uint8 _value) {
     _value = uint8(1 >> uint8(_action));
   }
 
-  function _getAllSupportedCurrencies() internal view returns (bytes32[] memory currencies_) {
-    for(uint16 idx = currencyCounter-1; idx > 0; idx--) {
+  function _getAllSupportedCurrencies() internal view returns (string[] memory currencies_) {
+    for(uint16 idx = 1; idx < currencyCounter; idx++) {
       if(supportedCurrencies[idx] > 0) {
         // TODO: Test this, it feels like this will take a long time
         string memory ticker = _getCurrencyTicker(idx);
-        bytes32 currencyTicker;
+//        bytes32 currencyTicker;
+//
+//        assembly {
+//          currencyTicker := mload(add(ticker, 32))
+//        }
 
-        assembly {
-          currencyTicker := mload(add(ticker, 32))
-        }
-
-        currencies_[idx] = currencyTicker;
+        currencies_[idx] = ticker;
       }
     }
+
+    return currencies_;
   }
 
-  function _getAllSupportedChains() internal view returns (bytes32[] memory chains_) {
-    for(uint16 idx = chainCounter-1; idx > 1; idx--) {
-      if(supportedChains[idx] > 0) {
-        chains_[idx] = supportedChainsNames[idx];
-      }
+  function _getAllSupportedChains() internal view returns (string[] memory chains_) {
+    for(uint16 idx = 0; idx < chainCounter; idx++) {
+//      if(supportedChains[idx] > 0) {
+        chains_[idx] = string(supportedChainsNames[idx]);
+//      }
     }
     return chains_;
   }
@@ -84,8 +86,8 @@ contract ZKBVaultManagement {
     return ZKBERC20(_getCurrencyContractAddress(_currency)).name();
   }
 
-  function _getChainName(uint16 _chain) internal view returns (bytes32) {
-    return supportedChainsNames[_chain];
+  function _getChainName(uint16 _chain) internal view returns (string memory) {
+    return string(supportedChainsNames[_chain]);
   }
 
   function _currencySupportsAction(uint16 _currency, Actions _action) internal view returns (bool) {
@@ -131,7 +133,7 @@ contract ZKBVaultManagement {
     _setCurrencyContractAddress(currencyId_, _contractAddress);
   }
 
-  function _addNewSupportedChain(bytes32 _name, uint8 _status) internal returns (uint16 chainId_) {
+  function _addNewSupportedChain(string memory _name, uint8 _status) internal returns (uint16 chainId_) {
     require(isMaster == true, "Can only add chains to the MasterVault");
 
     chainId_ = chainCounter++; // collect chain counter then immediately increment it
@@ -227,7 +229,7 @@ contract ZKBVaultManagement {
     ZKBERC20(currenciesContract[_currency]).mint(_to, _amount);
   }
 
-  function _beforeDeposit(address _depositor, uint16 _currency, uint16 _chainId, uint32 _amount) internal returns (bool) {
+  function _beforeDeposit(address /* _depositor */, uint16 _currency, uint16 _chainId, uint32 /* _amount */) internal view returns (bool) {
     require(isMaster == true, "Funds can only be deposited on the master contract");
     require(supportedChains[_chainId] > 0, "This chain is not supported");
     require(_chainSupportsAction(_chainId, Actions.MINT) && _chainSupportsAction(_chainId, Actions.CLAIM), "This chain is not supported");
@@ -235,7 +237,7 @@ contract ZKBVaultManagement {
     return true;
   }
 
-  function _afterDeposit(address _depositor, uint16 _currency, uint16 _chainId, uint32 _amount) internal returns (uint32 _finalAmount) {
+  function _afterDeposit(address /* _depositor */, uint16 _currency, uint16 _chainId, uint32 _amount) internal returns (uint32 _finalAmount) {
     uint16 _remainder = uint16((_amount * uint32(feesInBips)) % 10000);
     uint32 _reservesAmount = ((_amount * uint32(feesInBips)) - ((_amount * uint32(feesInBips)) % 10000)) / 10000;
     // Round up
