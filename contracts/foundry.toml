@@ -2,6 +2,13 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+optimizer = true
+optimizer_runs = 100_000
+
+[profile.production]
+optimizer = true
+optimizer_runs = 10_000_000
+#via_ir = true
 
 remappings = [
   "@commons/=./commons/"
