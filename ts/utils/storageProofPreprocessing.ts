@@ -56,8 +56,6 @@ export async function preprocessing(
   const proof = serialise(proofPath);
   const storage = serialise(storageHash);
 
-  console.log("theValue: ", theProof.value);
-
   const proofData: Serial = {
     proof,
     key,

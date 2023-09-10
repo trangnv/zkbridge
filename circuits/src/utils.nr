@@ -10,6 +10,16 @@ fn arr32_to_field(num_arr: [u8; 32]) -> Field {
     out
 }
 
+fn get_address_from_value(value: [u8;32]) -> Field {
+    let mut out: Field = 0;
+    let mut v: Field = 1;
+    for i in 0..20 {
+        out += value[31 - i] as Field * v;
+        v *= 256;
+    }
+    out
+}
+
 fn arr64_to_field(num_arr: [u8; 64]) -> Field {
     let mut out: Field = 0;
     let mut v: Field = 1;
