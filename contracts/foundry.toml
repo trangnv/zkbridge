@@ -5,6 +5,15 @@ libs = ["lib"]
 optimizer = true
 optimizer_runs = 100_000
 
+[profile.localchain]
+eth_rpc_url = "http://127.0.0.1:8545"
+optimizer = true
+optimizer_runs = 10_000
+
+[rpc_endpoints]
+zksync = ""
+mainnet = "${RPC_MAINNET}"
+
 [profile.production]
 optimizer = true
 optimizer_runs = 10_000_000
