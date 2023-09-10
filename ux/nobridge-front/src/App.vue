@@ -48,17 +48,6 @@
 <!--            </div>-->
             <!-- Right Sidebar Header -->
           </div>
-
-          <!-- Menu button -->
-          <div class="absolute right-0 flex-shrink-0 lg:hidden">
-            <!-- Mobile menu button -->
-            <PopoverButton class="relative inline-flex items-center justify-center rounded-md bg-transparent p-2 text-indigo-200 hover:bg-white hover:bg-opacity-10 hover:text-white focus:outline-none focus:ring-2 focus:ring-white">
-              <span class="absolute -inset-0.5" />
-              <span class="sr-only">Open main menu</span>
-              <Bars3Icon v-if="!open" class="block h-6 w-6" aria-hidden="true" />
-              <XMarkIcon v-else class="block h-6 w-6" aria-hidden="true" />
-            </PopoverButton>
-          </div>
         </div>
         <div class="hidden border-t border-white border-opacity-20 py-5 lg:block">
           <div class="grid grid-cols-3 items-center gap-8">
@@ -70,6 +59,7 @@
             <div>
               <div class="mx-auto w-full max-w-md text-indigo-100">
                 <!-- Right Sidebar Header -->
+                <RouterView class="view wallet overflow-visible" name="Wallet"></RouterView>
               </div>
 <!--              <div class="mx-auto w-full max-w-md">-->
 <!--                <label for="mobile-search" class="sr-only">Search</label>-->
@@ -145,6 +135,7 @@
               <h2 class="sr-only" id="section-1-title">Claim</h2>
               <div class="overflow-hidden rounded-lg bg-white shadow">
                 <div class="p-6">
+                  <!-- actual router -->
                   <RouterView class="view left-sidebar overflow-visible" name="LeftSidebar"></RouterView>
                 </div>
               </div>
@@ -154,9 +145,12 @@
           <!-- Right column -->
           <div class="grid grid-cols-1 gap-4">
             <section aria-labelledby="section-2-title">
-              <h2 class="sr-only" id="section-2-title"><!-- Right Sidebar Header --></h2>
+              <h2 class="sr-only" id="section-2-title">
+                <!-- Right Sidebar Header -->
+              </h2>
               <div class="overflow-hidden rounded-lg bg-white shadow">
                 <div class="p-6">
+                  <!-- default router -->
                   <RouterView class="view right-sidebar overflow-visible" name="RightSidebar"></RouterView>
                 </div>
               </div>
@@ -183,26 +177,22 @@ import {
   TransitionRoot,
 } from '@headlessui/vue'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/vue/24/outline'
-import { MagnifyingGlassIcon } from '@heroicons/vue/20/solid'
-
 import { RouterLink, RouterView } from 'vue-router'
 
-const user = {
-  name: 'Tom Cook',
-  email: 'tom@example.com',
-  imageUrl:
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+function reactToOnCreate(event) {
+  console.log("Payload received", event);
 }
+
+import {useUserStore} from "@/stores/user";
+
+const userStore = useUserStore()
+
 const navigation = [
   { name: 'Home', href: '/', current: true },
-  { name: 'About', href: '/about', current: false },
-  { name: 'Deposit', href: '/deposit', current: false },
-  { name: 'Claim', href: '/claim', current: false },
-  { name: 'Team', href: '/team', current: false },
+  // { name: 'About', href: '/about', current: false },
+  // { name: 'Deposit', href: '/deposit', current: false },
+  // { name: 'Claim', href: '/claim', current: false },
+  // { name: 'Team', href: '/team', current: false },
 ]
-// const userNavigation = [
-//   { name: 'Your Profile', href: '#' },
-//   { name: 'Settings', href: '#' },
-//   { name: 'Sign out', href: '#' },
-// ]
+
 </script>

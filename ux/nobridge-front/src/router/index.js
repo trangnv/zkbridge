@@ -8,7 +8,8 @@ const router = createRouter({
       name: 'home',
       components: {
         LeftSidebar: () => import('../views/DepositView.vue'),
-        RightSidebar: () => import('../views/AboutView.vue')
+        RightSidebar: () => import('../views/AboutView.vue'),
+        Wallet: () => import('../views/WalletView.vue')
       }
     },
     {

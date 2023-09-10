@@ -6,7 +6,7 @@
         <dl class="mt-2 space-y-6 divide-y divide-gray-900/10">
           <Disclosure>
             <dt>
-              <DisclosureButton class="flex w-full items-start justify-between text-left text-gray-900">
+              <DisclosureButton v-slot="{open}"  class="flex w-full items-start justify-between text-left text-gray-900">
                 <span class="text-base font-semibold leading-7">How does it work?</span>
                 <span class="ml-6 flex h-7 items-center">
                 <PlusSmallIcon v-if="!open" class="h-6 w-6" aria-hidden="true" />
@@ -30,7 +30,7 @@
           </Disclosure>
           <Disclosure>
             <dt>
-              <DisclosureButton class="flex w-full items-start justify-between text-left text-gray-900">
+              <DisclosureButton v-slot="{open}" class="flex w-full items-start justify-between text-left text-gray-900">
                 <span class="text-base font-semibold leading-7">Is it the same money than on ETH chain?</span>
                 <span class="ml-6 flex h-7 items-center">
                 <PlusSmallIcon v-if="!open" class="h-6 w-6" aria-hidden="true" />
@@ -55,7 +55,5 @@
 <script setup>
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { MinusSmallIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
-
-
 
 </script>
