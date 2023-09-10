@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.20;
 
 import {ZKBERC20} from "../Tokens/ZKBERC20.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
@@ -51,7 +51,7 @@ contract ZKBVaultManagement {
     return uint8(uint8(1) << uint8(_action));
   }
 
-  function _getAllSupportedCurrencies() internal view returns (string[] memory currencies_) {
+  function _getAllSupportedCurrencies() internal view returns (string[] memory) {
     string[] memory currencies_ = new string[](currencyCounter);
     for(uint16 idx = 1; idx < currencyCounter; idx++) {
       if(supportedCurrencies[idx] > 0) {
@@ -69,7 +69,7 @@ contract ZKBVaultManagement {
     return currencies_;
   }
 
-  function _getAllSupportedChains() internal view returns (string[] memory chains_) {
+  function _getAllSupportedChains() internal view returns (string[] memory) {
     string[] memory chains_ = new string[](chainCounter);
     for(uint16 idx = 2; idx < chainCounter; idx++) {
       if(supportedChains[idx] > 0) {

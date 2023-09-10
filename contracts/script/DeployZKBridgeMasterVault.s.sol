@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.8.20;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity ^0.8.20;
 
 import {Script} from "forge-std/Script.sol";
 
@@ -16,7 +16,7 @@ contract DeployZKBridgeMasterVault is Script {
     ZKBridgeMasterVault zkbMasterVault = new ZKBridgeMasterVault();
     uint16 zkSatelliteChainId = zkbMasterVault.addSupportedChain("zkSync Testnet");
 
-    mockERC20_1 = new mockERC20("mockERC20", "mERC", 18);
+    mockERC20 mockERC20_1 = new mockERC20("mockERC20", "mERC", 18);
 
     zkbMasterVault.addSupportedCurrency(address(mockERC20_1));
 
