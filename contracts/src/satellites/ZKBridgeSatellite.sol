@@ -18,7 +18,7 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
   // address => claimId => claimProcessId
   mapping(address => mapping(uint32 => uint32)) private claimProcesses;
   uint32 private claimProcessesCounter = 0;
-  mapping (bytes24 => bool) noncesUsed;
+  mapping(bytes24 => bool) noncesUsed;
 
   enum ClaimProcessStages {
     NONE,
@@ -62,11 +62,11 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
 
   function addSupportedCurrency(address _contractAddress) external onlyLevelAndUpOrOwnerOrController(PermissionLevel.OPERATOR) returns (uint16 currencyId_) {
     uint8 currencyStatus = _getFlagValue(Actions.MINT) |
-      _getFlagValue(Actions.BURN) |
-      _getFlagValue(Actions.CLAIM) |
-      _getFlagValue(Actions.REDEEM) |
-      _getFlagValue(Actions.TRANSFER) |
-      _getFlagValue(Actions.DEPOSIT);
+            _getFlagValue(Actions.BURN) |
+            _getFlagValue(Actions.CLAIM) |
+            _getFlagValue(Actions.REDEEM) |
+            _getFlagValue(Actions.TRANSFER) |
+            _getFlagValue(Actions.DEPOSIT);
     currencyId_ = _addNewSupportedCurrency(currencyStatus, _contractAddress);
   }
 
@@ -126,8 +126,17 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
     return (claimId, claimProcessId_);
   }
 
-  function _markClaimProcess(uint32 _claimId, address _destinationAccount, bool _confirmed) public onlyStateVerifier {
-    if(_confirmed == true) {
+  function _markClaimProcess(uint32 _claimId, address _destinationAccount, bytes memory _signature, bytes24 _nonce, bool _confirmed) public onlyStateVerifier {
+    require(redemptionClaims[_claimId] == uint8(ClaimProcessStages.CLAIM_STARTED), "This claim redemption has already been processed");
+
+    bytes32 prefixedHashedMessage = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", "Proof of deposit: ", _claimId, " with nonce: ", _nonce));
+    (bytes32 _r, bytes32 _s, uint8 _v) = ZKBridgeUtils.splitSignature(_signature);
+    address signer = ecrecover(prefixedHashedMessage, _v, _r, _s);
+    noncesUsed[_nonce] = true;
+
+    require(signer == stateVerifier);
+
+    if (_confirmed == true) {
       redemptionClaims[_claimId] = uint8(ClaimProcessStages.CLAIM_VERIFIED);
     } else {
       redemptionClaims[_claimId] = uint8(ClaimProcessStages.CLAIM_REJECTED);
@@ -142,18 +151,18 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
     require(noncesUsed[_nonce] == false, "Nonce has already been consumed, please generate a new signature");
 
     // this recreates the message that was signed on the client
-    bytes32 prefixedHashedMessage = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", "Verification for redemption: ", _claimId, _nonce));
+    bytes32 prefixedHashedMessage = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", "Verification for redemption: ", _claimId, " with nonce: ", _nonce));
     (bytes32 _r, bytes32 _s, uint8 _v) = ZKBridgeUtils.splitSignature(_signature);
-
     address signer = ecrecover(prefixedHashedMessage, _v, _r, _s);
+
     noncesUsed[_nonce] = true;
 
-    (uint32 amount_, uint16 currency_, , uint32 claimId_, address account_, uint32 claimProcessId_, ) = getMetadataForClaimId(_claimId);
+    (uint32 amount_, uint16 currency_, , uint32 claimId_, address account_, uint32 claimProcessId_,) = getMetadataForClaimId(_claimId);
 
     require(account_ == signer, "The signature must come from the destination address");
 
     // The process is complete at this point, everything has been validated. Releasing the tokens.
-    emit ClaimProcessStatusChanged(claimId_, claimProcessId_,  redemptionClaims[claimId_], msg.sender, account_);
+    emit ClaimProcessStatusChanged(claimId_, claimProcessId_, redemptionClaims[claimId_], msg.sender, account_);
 
     redemptionClaims[_claimId] = uint8(ClaimProcessStages.CLAIM_COMPLETED);
     _mintTokens(account_, currency_, amount_);
@@ -163,13 +172,13 @@ contract ZKBridgeSatellite is ZKBPermissionsController, ZKBVaultManagement {
 
   function getClaimProcessStagesLabels() public pure returns (string[7] memory cps_) {
     cps_ = [
-      "NONE",
-      "CLAIM_STARTED",
-      "CLAIM_PENDING",
-      "CLAIM_REJECTED",
-      "CLAIM_VERIFIED",
-      "CLAIM_COMPLETED",
-      "CLAIM_CANCELLED"
+          "NONE",
+          "CLAIM_STARTED",
+          "CLAIM_PENDING",
+          "CLAIM_REJECTED",
+          "CLAIM_VERIFIED",
+          "CLAIM_COMPLETED",
+          "CLAIM_CANCELLED"
       ];
   }
 
