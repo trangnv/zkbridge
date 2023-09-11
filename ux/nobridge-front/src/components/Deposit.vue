@@ -108,9 +108,9 @@
 <!--                    </button>-->
         </div>
         <div class="flex-shrink-0">
-          <button type="submit"
+          <button @click="deposit"
                   class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            Create
+            Deposit
           </button>
         </div>
       </div>
@@ -119,13 +119,20 @@
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {ref, watch} from 'vue'
+
 import {Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions} from '@headlessui/vue'
 import {TagIcon, UserCircleIcon} from '@heroicons/vue/20/solid'
+
 import USDTLogo from '~/svg/icon/usdt.svg'
 import RIPPLELogo from '~/svg/icon/xrp.svg'
 import AVAXLogo from '~/svg/icon/avax.svg'
 import ONELogo from '~/svg/icon/one.svg'
+
+import {ethers} from "ethers";
+import {useOnboard} from "@web3-onboard/vue";
+
+const { wallets, connectWallet, disconnectConnectedWallet, connectedWallet } = useOnboard()
 
 const emits = defineEmits(["on-create"]);
 
@@ -158,5 +165,22 @@ function checkIfValueIsAboveTheMax() {
   console.log("Amount: ", amount.value);
   if (amount.value > Math.pow(2, 32) - 1) amount.value = Math.pow(2, 32) - 1
 }
+
+watch(() => connectedWallet, () => {
+  const {accounts, chains} = connectedWallet;
+  console.log("WalletView watch connectedWallet", accounts, chains);
+})
+
+async function deposit() {
+  if (connectedWallet.value) {
+    console.log("Connected: Deposit");
+    // if using ethers v6 this is:
+    const ethersProvider = new ethers.BrowserProvider(connectedWallet.provider, 'any')
+    // const ethersProvider = new ethers.providers.Web3Provider(connectedWallet.provider, 'any')
+    // ..... do stuff with the provider
+    // ethersProvider.
+  }
+}
+
 
 </script>

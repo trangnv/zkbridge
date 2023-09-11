@@ -72,7 +72,9 @@ while (( $# )); do
       ;;
     -l|--local)
       printf "\n${GREY}Selected local deployment \t${GREEN}${LOCAL_RPC}${NC}\n"
+      printf "\n${GREY}Selected contract: \t\t${GREEN}DeployZKBridgeSatellite${NC}\n"
       DEPLOY_RPC=${LOCAL_RPC}
+      DEPLOY_CONTRACT=script/DeployLocalhostFacilities.s.sol
       shift 1
       ;;
     -t|--testnet)
@@ -148,7 +150,7 @@ if [ ! ${DRY_RUN} -eq 0 ]; then
   printf "\n${YELLOW}dry-run only mode${NC}. If you are ready to go, pass -r or --run to execute. Dry-run is on by default, see ${GREEN}--help${NC} for more options\n"
 else
   printf "\n\n ${GREEN}Running${NC}: \n\n\n"
-  forge script $DEPLOY_CONTRACT --fork-url $DEPLOY_RPC --private-key $PRIVATE_KEY --broadcast
+  forge script -vvvvv $DEPLOY_CONTRACT --fork-url $DEPLOY_RPC --private-key $PRIVATE_KEY --broadcast
 fi
 
 printf "\n${GREY}done${NC}\n"
