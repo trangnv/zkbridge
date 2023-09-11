@@ -21,7 +21,7 @@
                 <li>Click "Create Claim" to trigger the process</li>
                 <li>Validate the approval and sign the deposit (of the amount and currency you have selected)</li>
                 <li>Once the transfer has completed, you will see a button "Claim", click it, this will trigger the Claim process on the target chain</li>
-                <li>A ZK proof of the deposit on the source chain (the master chain) will be generated and sent to the verifier on the destination chain</li>
+                <li>A ZK proof (storage proof) of the deposit on the source chain (the master chain) will be generated and sent to the verifier on the destination chain</li>
                 <li>If the proof is valid, it will confirm it, and request a decentralized validation</li>
                 <li>Once the validation has happened, the claim ticket on the destination chain will be marked as ready to finalize</li>
                 <li>At which point, you will be able to click the final button "Finalize Claim Request", sign the request and proceed, and the funds will be added to your address on the destination chain</li>

@@ -1,0 +1,16 @@
+{
+  "name": "prover",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "^0.5.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.5",
+    "alchemy-sdk": "^2.10.0",
+    "ethers": "^6.7.1"
+  }
+}
