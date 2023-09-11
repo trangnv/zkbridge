@@ -26,8 +26,8 @@ contract BridgeFlow is Test {
     // Set this up so this contract is the controller
     zkbERC20_1 = new ZKBERC20("zkbmockERC20", "zkbmERC20", 18, address(zkSatellite));
 
-    zkbMasterVault.addSupportedCurrency(address(mockERC20_1));
-    zkSatellite.addSupportedCurrency(address(zkbERC20_1));
+    uint16 masterCurrencyId = zkbMasterVault.addSupportedCurrency(address(mockERC20_1));
+    zkSatellite.addSupportedCurrency(masterCurrencyId, address(zkbERC20_1));
   }
 
   function test_AddSupportedChainOnMaster() public {
@@ -59,7 +59,7 @@ contract BridgeFlow is Test {
   }
 
   function test_AddSupportedCurrencyOnSatellite() public {
-    uint16 currencyId = zkSatellite.addSupportedCurrency(address(zkbERC20_1));
+    uint16 currencyId = zkSatellite.addSupportedCurrency(2, address(zkbERC20_1));
     string memory currencyName = zkSatellite.getCurrencyName(currencyId);
     console.logString(currencyName);
     assertEq(currencyName, zkbERC20_1.name());
@@ -67,27 +67,14 @@ contract BridgeFlow is Test {
 
   function test_GetSupportedCurrenciesOnMaster() public {
     zkbMasterVault.addSupportedCurrency(address(mockERC20_1));
-    string[] memory supportedCurrencies = zkbMasterVault.getSupportedCurrencies();
+    (string[] memory supportedCurrencies,) = zkSatellite.getSupportedCurrencies();
     assertGt(supportedCurrencies.length, 0);
   }
 
   function test_GetSupportedCurrenciesOnSatellite() public {
-    zkSatellite.addSupportedCurrency(address(zkbERC20_1));
-    string[] memory supportedCurrencies = zkSatellite.getSupportedCurrencies();
+    zkSatellite.addSupportedCurrency(3, address(zkbERC20_1));
+    (string[] memory supportedCurrencies,) = zkSatellite.getSupportedCurrencies();
     assertGt(supportedCurrencies.length, 0);
-  }
-
-  function test_Init() public {
-    string[] memory supportedChains = zkbMasterVault.getSupportedChains();
-    console.logString("Chains Supported: ");
-    console.logUint(supportedChains.length);
-    for(uint8 x = 0; x < supportedChains.length; x++) {
-      console.logString(supportedChains[x]);
-    }
-  }
-
-  function test_Increment() public {
-//    assertEq(counter.number(), 1);
   }
 
   function test_Deposit() public {

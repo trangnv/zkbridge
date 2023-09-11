@@ -51,8 +51,9 @@ contract ZKBVaultManagement {
     return uint8(uint8(1) << uint8(_action));
   }
 
-  function _getAllSupportedCurrencies() internal view returns (string[] memory) {
+  function _getAllSupportedCurrencies() internal view returns (string[] memory, address[] memory) {
     string[] memory currencies_ = new string[](currencyCounter);
+    address[] memory contractAddresses_ = new address[](currencyCounter);
     for(uint16 idx = 1; idx < currencyCounter; idx++) {
       if(supportedCurrencies[idx] > 0) {
         string memory ticker = _getCurrencyTicker(idx);
@@ -63,10 +64,11 @@ contract ZKBVaultManagement {
 //        }
 
         currencies_[idx] = ticker;
+        contractAddresses_[idx] = currenciesContract[idx];
       }
     }
 
-    return currencies_;
+    return (currencies_, contractAddresses_);
   }
 
   function _getAllSupportedChains() internal view returns (string[] memory) {
@@ -128,7 +130,21 @@ contract ZKBVaultManagement {
   }
 
   function _addNewSupportedCurrency(uint8 _status, address _contractAddress) internal returns (uint16 currencyId_) {
+    require(isMaster == true, "This can only happen on MasterVault");
     currencyId_ = currencyCounter++;
+    require(supportedCurrencies[currencyId_] == 0, "This currency has already been set");
+    _setCurrencySupportStatus(currencyId_, _status);
+    _setCurrencyContractAddress(currencyId_, _contractAddress);
+  }
+
+  function _addNewSupportedSatelliteCurrency(uint16 _currencyId, uint8 _status, address _contractAddress) internal returns (uint16 currencyId_) {
+    require(isMaster == false, "This can only happen on Satellites");
+    currencyId_ = _currencyId;
+    if(_currencyId > currencyCounter) {
+      // Make sure that we always have a counter that's larger than the current id created
+      // A cheap way to keep master and all the satellites in sync
+      currencyCounter = _currencyId+1;
+    }
     require(supportedCurrencies[currencyId_] == 0, "This currency has already been set");
     _setCurrencySupportStatus(currencyId_, _status);
     _setCurrencyContractAddress(currencyId_, _contractAddress);

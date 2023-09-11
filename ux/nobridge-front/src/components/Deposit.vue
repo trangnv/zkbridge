@@ -3,14 +3,14 @@
     <div
         class="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
       <label for="title" class="sr-only">Title</label>
-      <input type="text" name="address" id="address"
-             v-model="address"
-             class="block w-full border-0 pt-2.5 text-lg font-medium placeholder:text-gray-400 focus:ring-0"
-             placeholder="Destination Address (0x...)"/>
-      <label for="description" class="sr-only">Enter the address you want to receive the funds on, on the chain you have
-        selected.</label>
+<!--      <input type="text" name="address" id="address"-->
+<!--             v-model="address"-->
+<!--             class="block w-full border-0 pt-2.5 text-lg font-medium placeholder:text-gray-400 focus:ring-0"-->
+<!--             placeholder="Destination Address (0x...)"/>-->
+<!--      <label for="description" class="sr-only">Enter the address you want to receive the funds on, on the chain you have-->
+<!--        selected.</label>-->
       <input type="number" @focusout="checkIfValueIsAboveTheMax" name="description" id="description" max="4294967295"
-             class="font-light text-3xl block w-full resize-none border-0 py-0 text-slate-900 placeholder:text-gray-400 focus:ring-0 sm:leading-6"
+             class="font-light text-3xl block w-full resize-none border-0 py-5 text-slate-900 placeholder:text-gray-400 focus:ring-0 sm:leading-6"
              placeholder="Amount"
              v-model="amount"
       />
@@ -108,7 +108,7 @@
           <!--                    </button>-->
         </div>
         <div class="flex-shrink-0">
-          <button @click.prevent="startMasterActionChain"
+          <button @click.prevent="startActionChain"
                   class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
             {{ getButtonMessage() }}
           </button>
@@ -146,7 +146,7 @@ const {wallets, connectWallet, disconnectConnectedWallet, connectedWallet, getCh
 const emits = defineEmits(["on-create"]);
 
 const currencies = [
-  { name: 'Unassigned', currencyId: 0, avatar: undefined },
+  { name: 'Unassigned', currencyId: 0, avatar: undefined, contractAddress: undefined },
 ]
 
 const chains = [
@@ -161,11 +161,15 @@ const chainSelected = ref(chains[0])
 const currencyList = ref(currencies)
 const chainList = ref(chains)
 
-const amount = ref(undefined)
+const amount = ref(50)
 const address = ref(undefined)
 const currentChainId = ref(-1);
 const currentProvider = ref({});
 const currentEthersProvider = ref({});
+const currentClaim = ref({
+  claimId: 0,
+  publicInputs: 0n,
+});
 
 const state = ref({
   connected: false,
@@ -181,7 +185,7 @@ function getButtonMessage() {
   if(!state.value.connected) return 'Connect';
   if(!state.value.claimCreated) return 'Create Claim';
   if(!state.value.claimConfirmed) return 'waiting for claim confirmation...';
-  if(!state.value.redeemStarted) return 'Redeem on target chain';
+  if(!state.value.redeemStarted) return `Redeem claim #${currentClaim.value.claimId} on target chain`;
   if(!state.value.redeemVerified) return 'waiting for 2FV verification...';
   if(!state.value.redeemConfirmed) return 'Finalize redemption';
   return 'Done! Create new claim (restart)';
@@ -230,7 +234,8 @@ async function refreshSupportedAssets() {
     return {
       name: currency.asset,
       currencyId: currency.index,
-      avatar: currencyLogos.sort(shuffleSort).at(0)
+      avatar: currencyLogos.sort(shuffleSort).at(0),
+      contractAddress: currency.contractAddress
     }
   })
   currencySelected.value = currencyList.value[0];
@@ -250,6 +255,53 @@ async function refreshSupportedAssets() {
   console.log(supportedCurrencies);
 }
 
+async function runDeposit() {
+  let _currentEthersProvider = new ethers.BrowserProvider(wallets.value[0].provider, 'any')
+
+  console.log("HasSigner: ", await _currentEthersProvider.hasSigner())
+  const signer = await _currentEthersProvider.getSigner();
+
+  const ERC20Address = currencySelected.value.contractAddress;
+  const ethersReadWriteContract = masterStore.getEthersContractForMockERC20(ERC20Address, signer);
+
+  const allowance = await ethersReadWriteContract.allowance(signer.address, masterStore.contractAddress);
+  console.log("Allowance", allowance);
+
+  if(allowance < amount.value) {
+    const tx = await ethersReadWriteContract.approve(masterStore.contractAddress, amount.value);
+    console.log(tx);
+    await tx.wait(1);
+    console.log("Transaction successful", tx);
+  }
+
+  console.log("Creating deposit for the following: ", amount.value, currencySelected.value.currencyId, chainSelected.value.chainId, signer.address, signer);
+  const tx = await masterStore.deposit(amount.value, currencySelected.value.currencyId, chainSelected.value.chainId, signer.address, signer);
+  const confirmation = await tx.wait(1);
+
+  const masterContract = masterStore.getMasterVaultContract(signer);
+  const claimReadyFilter = masterContract.filters.ClaimReady(signer.address);
+  const claimReadyEvents = await masterContract.queryFilter(claimReadyFilter, -1);
+
+  let latestTx = claimReadyEvents.at(-1)
+
+  if(claimReadyEvents.length > 0) {
+    const params = latestTx.args;
+    const claimId = params[1]; // 2nd parameter
+    const amountAfterFees = params.at(-1); // last
+
+    const publicInputs = await masterContract.claims(claimId);
+    console.log("Public Inputs: ", publicInputs);
+
+    currentClaim.value = {
+      claimId: claimId,
+      publicInputs: publicInputs,
+    }
+
+    console.log("latest claimId: ", claimId);
+    return currentClaim.value
+  }
+}
+
 watch(connectedWallet, async () => {
   const currentChain = wallets.value[0].chains[0];
   currentProvider.value = wallets.value[0].provider;
@@ -267,7 +319,7 @@ watch(connectedWallet, async () => {
   console.log("currentEthersProvider is now: ", currentEthersProvider.value);
 })
 
-async function startMasterActionChain() {
+async function startActionChain() {
   if(!state.value.connected) {
     if (wallets.value.length === 0) {
       await connectWallet();
@@ -285,7 +337,18 @@ async function startMasterActionChain() {
     if(!chainSwitched) return;
     console.log("✅ Master Chain ok");
 
+    const depositRanSuccesfully = await runDeposit();
+    if(!depositRanSuccesfully) {
+      console.error("❌ Deposit failed");
+      return;
+    } else {
+      console.log("✅ Claim ready to be redeemed");
+    }
+
+    // state.value.claimCreated = true;
+    // We just directly to confirmed
     state.value.claimCreated = true;
+    state.value.claimConfirmed = true;
     return;
   }
 

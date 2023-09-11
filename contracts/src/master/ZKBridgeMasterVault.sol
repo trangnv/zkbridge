@@ -15,7 +15,7 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
   mapping(uint32 => uint256) public claims;
   uint32 private claimId = 0; // Master NFT counter, ID of the "next" NFT to mint
 
-  event ClaimReady(address indexed from, uint16 indexed currency, uint16 internalChainId, uint32 indexed finalAmount, uint32 fees);
+  event ClaimReady(address indexed from, uint32 claimId, uint16 indexed currency, uint16 internalChainId, uint32 finalAmount, uint32 fees);
 
   // Marks the ZKBVaultManagement as master, chainId 1
   constructor()  ZKBPermissionsController() ZKBVaultManagement(true, 1) {
@@ -35,7 +35,7 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
     claimId++;
     claims[claimId] = ZKBridgeUtils.getSlotFrom(finalAmount, _currency, _chainId, claimId, _account);
 
-    emit ClaimReady(_account, _currency, _chainId, _amount, finalAmount);
+    emit ClaimReady(_account, claimId, _currency, _chainId, _amount, finalAmount);
   }
 
   // TODO:
@@ -59,7 +59,7 @@ contract ZKBridgeMasterVault is ReentrancyGuard, ZKBPermissionsController, ZKBVa
     currencyReserves[_currency] = 0;
   }
 
-  function getSupportedCurrencies() external view returns (string[] memory) {
+  function getSupportedCurrencies() external view returns (string[] memory, address[] memory) {
     return _getAllSupportedCurrencies();
   }
 

@@ -10,6 +10,7 @@ import {ZKBERC20} from "../src/commons/Tokens/ZKBERC20.sol";
 
 contract DeployLocalhostFacilities is Script {
   address payable nick = payable(0x03D0e96BB554fFe4e7d189f554907BA17a8C220b);
+  address payable nickMM = payable(0xAE093Ac1B4B83c1b8d8D2A5D3b9436f873959a28);
   address payable runner = payable(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266);
 
   function run() public {
@@ -22,13 +23,15 @@ contract DeployLocalhostFacilities is Script {
     ZKBERC20 zkbERC20_1 = new ZKBERC20("zkbmockERC20", "zkbmERC20", 8, address(zkSatellite));
 
     mockERC20 mockERC20_1 = new mockERC20("mockERC20", "mERC", 8);
-    mockERC20_1.mint(nick, 4294967295);
+    mockERC20_1.mint(nick, 2294967295);
+    mockERC20_1.mint(nickMM, 2294967295);
     mockERC20_1.approve(nick, 1000e8);
 
     nick.transfer(100 ether);
+    nickMM.transfer(100 ether);
 
-    zkbMasterVault.addSupportedCurrency(address(mockERC20_1));
-    zkSatellite.addSupportedCurrency(address(zkbERC20_1));
+    uint16 masterCurrencyId = zkbMasterVault.addSupportedCurrency(address(mockERC20_1));
+    zkSatellite.addSupportedCurrency(masterCurrencyId, address(zkbERC20_1));
 
     vm.stopBroadcast();
   }

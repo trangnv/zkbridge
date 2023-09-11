@@ -175,6 +175,11 @@
     {
       "inputs": [
         {
+          "internalType": "uint16",
+          "name": "_currencyId",
+          "type": "uint16"
+        },
+        {
           "internalType": "address",
           "name": "_contractAddress",
           "type": "address"
@@ -447,6 +452,11 @@
           "internalType": "string[]",
           "name": "",
           "type": "string[]"
+        },
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
         }
       ],
       "stateMutability": "view",

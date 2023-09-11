@@ -12,9 +12,11 @@ contract DeployZKBridgeSatellite is Script {
 
     UltraVerifier ultraVerifier = new UltraVerifier();
     uint16 zkSatelliteChainId = 2;
+    uint16 masterCurrencyId = 1;
+
     ZKBridgeSatellite zkSatellite = new ZKBridgeSatellite(ultraVerifier, address(this), zkSatelliteChainId);
     ZKBERC20 zkbERC20_1 = new ZKBERC20("zkbmockERC20", "zkbmERC20", 18, address(zkSatellite));
-    zkSatellite.addSupportedCurrency(address(zkbERC20_1));
+    zkSatellite.addSupportedCurrency(masterCurrencyId, address(zkbERC20_1));
 
     vm.stopBroadcast();
   }

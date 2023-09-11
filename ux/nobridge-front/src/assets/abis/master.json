@@ -15,6 +15,12 @@
           "type": "address"
         },
         {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "claimId",
+          "type": "uint32"
+        },
+        {
           "indexed": true,
           "internalType": "uint16",
           "name": "currency",
@@ -27,7 +33,7 @@
           "type": "uint16"
         },
         {
-          "indexed": true,
+          "indexed": false,
           "internalType": "uint32",
           "name": "finalAmount",
           "type": "uint32"
@@ -293,6 +299,11 @@
           "internalType": "string[]",
           "name": "",
           "type": "string[]"
+        },
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
         }
       ],
       "stateMutability": "view",

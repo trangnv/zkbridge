@@ -12,9 +12,8 @@ contract DeployZKBridgeMasterVault is Script {
   function run() public {
     vm.startBroadcast();
 
-    UltraVerifier ultraVerifier = new UltraVerifier();
     ZKBridgeMasterVault zkbMasterVault = new ZKBridgeMasterVault();
-    uint16 zkSatelliteChainId = zkbMasterVault.addSupportedChain("zkSync Testnet");
+    zkbMasterVault.addSupportedChain("zkSync Testnet");
 
     mockERC20 mockERC20_1 = new mockERC20("mockERC20", "mERC", 18);
 
