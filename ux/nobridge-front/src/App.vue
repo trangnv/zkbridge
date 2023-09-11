@@ -183,10 +183,6 @@ function reactToOnCreate(event) {
   console.log("Payload received", event);
 }
 
-import {useUserStore} from "@/stores/user";
-
-const userStore = useUserStore()
-
 const navigation = [
   { name: 'Home', href: '/', current: true },
   // { name: 'About', href: '/about', current: false },
